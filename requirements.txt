@@ -1,1 +1,4 @@
 pysubs2==1.8.0
+fugashi[unidic-lite]
+google-genai==1.12.1
+python-dotenv==1.1.0

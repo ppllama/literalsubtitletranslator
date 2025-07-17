@@ -194,3 +194,5 @@ cython_debug/
 .cursorindexingignore
 
 content/
+pysubs2
+subtitles.srt
