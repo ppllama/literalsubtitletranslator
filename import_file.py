@@ -1,6 +1,6 @@
 import pysubs2, sys
 
-def import_file(file_path, verbose):
+def import_file(file_path, verbose=False):
 
     try:
         with open(file_path, "r") as source_file:

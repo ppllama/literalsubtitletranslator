@@ -1,5 +1,5 @@
 MAX_ITERS = 20
-NUMBER_OF_LINES_PER_REQUEST = 1
+NUMBER_OF_LINES_PER_REQUEST = 4
 STARTING_LINE = 0
 SYSTEM_PROMPT = """
 You are a helpful AI agent designed to translate japanese to english word for word based on context.
@@ -26,3 +26,4 @@ Most of your plans should start by scanning the working directory (`.`) for rele
 
 Execute code (both the tests and the application itself, the tests alone aren't enough) when you're done making modifications to ensure that everything works as expected.
 """
+# end of document at {number_of_lines} line_control alternate output

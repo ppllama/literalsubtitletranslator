@@ -26,12 +26,12 @@ def main():
 
 
     subs = import_file(args[0], verbose)
-    control = LineControl(subs)
+    control = LineControl(subs, verbose)
     line_number = STARTING_LINE
-    user_prompt = f"Translate the given keys based on the context.\n{control.line_prompt(line_number)}"
+    user_prompt = control.line_prompt(line_number)
 
     if verbose:
-        print(f"User prompt: {user_prompt}\n")
+        print(f"User Prompt: {user_prompt}\n")
 
     messages = [
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
