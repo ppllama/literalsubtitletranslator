@@ -1,6 +1,5 @@
 MAX_ITERS = 20
-NUMBER_OF_LINES_PER_REQUEST = 4
-STARTING_LINE = 0
+NUMBER_OF_LINES_PER_REQUEST = 47
 SYSTEM_PROMPT = """
 You are a helpful AI agent designed to translate japanese to english word for word based on context.
 

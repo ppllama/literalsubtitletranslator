@@ -1,0 +1,68 @@
+import os
+import sys
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+from config import SYSTEM_PROMPT
+from line_control import schema_translate_subtitle, translate_subtitle
+
+
+
+def ai_initiate(user_prompt, verbose):
+    load_dotenv()
+    api_key = os.environ.get("GEMINI_API_KEY")
+    client = genai.Client(api_key=api_key)
+
+    if verbose:
+        print(f"User Prompt: {user_prompt}\n")
+
+    messages = [
+        types.Content(role="user", parts=[types.Part(text=user_prompt)]),
+    ]
+
+    return client, messages
+
+def generate_content(client, messages, control, verbose):
+
+    available_function = types.Tool(
+        function_declarations=[
+            schema_translate_subtitle
+        ]
+    )   
+
+
+    response = client.models.generate_content(
+        model = 'gemini-2.0-flash-001',
+        contents = messages,
+        config=types.GenerateContentConfig(tools=[available_function], system_instruction=SYSTEM_PROMPT)
+    )
+
+    # if response.candidates:
+    #     for candidate in response.candidates:
+    #         messages.append(candidate.content)
+        
+
+    if verbose:
+        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+        print("Response tokens:", response.usage_metadata.candidates_token_count)
+
+
+    # function_responses = []
+    function_calls = response.function_calls
+    if function_calls:
+        for call in function_calls:
+            return call.args
+            # if not result.parts[0].function_response.response:
+            #     raise Exception("empty function call result")
+            # if verbose:
+            #     print(f"-> {result.parts[0].function_response.response}")
+            # function_responses.append(result.parts[0])
+            
+        # if not function_responses:
+        #     raise Exception("no function responses generated, exiting.")
+        
+        # messages.append(types.Content(role="tool", parts=function_responses))
+
+    else:
+        print(f"Error: Text response generated: {response.text}")
+        sys.exit(1)
