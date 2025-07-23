@@ -1,17 +1,13 @@
-import sys
-# from dotenv import load_dotenv
-# from google import genai
-# from google.genai import types
+import sys, os
 from ai_generator import ai_initiate, generate_content
-from config import MAX_ITERS
+from config import STARTING_LINE
 from fugashi import Tagger
-from import_file import import_file
+from importexport import import_file, buildSSA
 from line_control import LineControl
 
 
 def main():
 
-    # load_dotenv()
     verbose = "--verbose" in sys.argv
     
     args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
@@ -20,12 +16,14 @@ def main():
         print("LiteralTranslator App")
         print('Usage: python main.py "<path to file>" "start=<starting_line_number>"')
         sys.exit(1)
+    file_path = os.path.abspath(args[0])
 
-    # api_key = os.environ.get("GEMINI_API_KEY")
-    # client = genai.Client(api_key=api_key)
+    if not os.path.isfile(file_path):
+        print(f'Error: File not found or is not a regular file: "{file_path}"')
+        
 
-
-    subs = import_file(args[0], verbose)
+    subs = import_file(file_path, verbose)
+    start = STARTING_LINE
     for arg in sys.argv[1:]:
         if arg.startswith("start="):
             start = int(arg.split("=", 1)[1])
@@ -33,34 +31,30 @@ def main():
     control = LineControl(subs, verbose, global_state=start)
     user_prompt = control.line_prompt()
 
-    # if verbose:
-    #     print(f"User Prompt: {user_prompt}\n")
-
-    # messages = [
-    #     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
-    # ]
-
     i = 0
+    complete_list_of_subtitle_events = []
     while True:
         i += 1
-        if i > MAX_ITERS:
-            print(f"Maximum iterations ({MAX_ITERS}) reached.")
-            sys.exit(1)
+        if i > control.iters:
+            print(f"Maximum iterations ({control.iters}) reached.")
+            break
         
         try:
             client, messages = ai_initiate(user_prompt, verbose)
-            response_translations = generate_content(client, messages, control, verbose)
+            response_translations = generate_content(client, messages, verbose)
+            print(response_translations)
             if verbose:
                 print(f"Calling function 'translate_subtitle' with args '{response_translations}'")
-            control.translate_subtitle(**response_translations)
-            
+            complete_list_of_subtitle_events.extend(control.translate_subtitle(**response_translations))
 
         except Exception as e:
             print(f"Error in generate_content: {e}")
-    
-
         
-    print(subs[0].text)
+    os.path.dirname(file_path)
+    output_path = str(os.path.dirname(file_path)) + "/" + str(os.path.basename(file_path)) + "_translated.ass"
+    buildSSA(complete_list_of_subtitle_events, output_path)
+
+    return "translated successfully!"
 
 
 if __name__=="__main__":

@@ -3,6 +3,7 @@ from fugashi_split import fugashi_split
 from ast import literal_eval
 from google import genai
 from google.genai import types
+import math
 
 class LineControl():
     
@@ -11,6 +12,7 @@ class LineControl():
         self.global_state = global_state #keeps track of which line was last called
         self.current_line = None
         self.verbose = verbose
+        self.iters = math.ceil(len(subs)/NUMBER_OF_LINES_PER_REQUEST)
 
 
     def line_prompt(self):
@@ -33,6 +35,7 @@ class LineControl():
         lines_to_translate = []
         for i in range(min(NUMBER_OF_LINES_PER_REQUEST, number_of_lines - self.global_state)):
             lines_to_translate.append(fugashi_split(self.subs, self.global_state + i))
+            lines_to_translate.append(get_text(self.global_state + i))
         
         parts = []
         
@@ -71,9 +74,22 @@ class LineControl():
         return "\n".join(parts)
     
 
-    def translate_subtitle(self, translated_dict):
-        translations = literal_eval(translated_dict)
-        self.current_line
+    def translate_subtitle(self, translated_dict_list):
+        list_of_subtitle_events = []
+        translated_dict_list = literal_eval(translated_dict_list)
+        for line in translated_dict_list:
+            subtitle_event = []
+            jap_tokens = []
+            eng_tokens = []
+            for key, value in line.items():
+                jap_tokens.append(key)
+                eng_tokens.append(value)
+            subtitle_event.append(jap_tokens)
+            subtitle_event.append(eng_tokens)
+            subtitle_event.append(self.subs[self.current_line])
+            list_of_subtitle_events.append(subtitle_event)
+        return list_of_subtitle_events
+
         
 
 
@@ -81,13 +97,13 @@ class LineControl():
 
 schema_translate_subtitle = types.FunctionDeclaration(
     name="translate_subtitle",
-    description="NOT YET IMPLEMENTED",
+    description="Constructs subtitle from given list of translations.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
-            "translated_dict": types.Schema(
+            "translated_dict_list": types.Schema(
                 type=types.Type.STRING,
-                description="Translations from Japanese to English word for word as a python dictionary",
+                description="Translations from Japanese to English word for word as a list of python dictionaries. Each item in the list is one subtitle line as its dictionary.",
             ),
         },
     ),

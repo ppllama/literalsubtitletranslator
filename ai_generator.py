@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from config import SYSTEM_PROMPT
-from line_control import schema_translate_subtitle, translate_subtitle
+from line_control import schema_translate_subtitle
 
 
 
@@ -22,7 +22,7 @@ def ai_initiate(user_prompt, verbose):
 
     return client, messages
 
-def generate_content(client, messages, control, verbose):
+def generate_content(client, messages, verbose):
 
     available_function = types.Tool(
         function_declarations=[
@@ -34,8 +34,10 @@ def generate_content(client, messages, control, verbose):
     response = client.models.generate_content(
         model = 'gemini-2.0-flash-001',
         contents = messages,
-        config=types.GenerateContentConfig(tools=[available_function], system_instruction=SYSTEM_PROMPT)
-    )
+        config=types.GenerateContentConfig(tools=[available_function],
+            system_instruction=SYSTEM_PROMPT,
+            tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=types.FunctionCallingConfigMode.ANY))
+    ))
 
     # if response.candidates:
     #     for candidate in response.candidates:
