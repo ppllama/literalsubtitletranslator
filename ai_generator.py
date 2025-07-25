@@ -4,8 +4,21 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from config import SYSTEM_PROMPT
-from line_control import schema_translate_subtitle
 
+
+schema_translate_subtitle = types.FunctionDeclaration(
+    name="translate_subtitle",
+    description="Constructs subtitle from given list of translations.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "translated_dict_list": types.Schema(
+                type=types.Type.STRING,
+                description="Translations from Japanese to English word for word as a valid JSON list of dictionaries. Each item in the list is one subtitle line as its dictionary.",
+            ),
+        },
+    ),
+)
 
 
 def ai_initiate(user_prompt, verbose):
@@ -67,4 +80,6 @@ def generate_content(client, messages, verbose):
 
     else:
         print(f"Error: Text response generated: {response.text}")
-        sys.exit(1)
+        return
+
+

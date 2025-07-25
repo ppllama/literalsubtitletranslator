@@ -1,9 +1,9 @@
 from config import NUMBER_OF_LINES_PER_REQUEST
 from fugashi_split import fugashi_split
 from ast import literal_eval
-from google import genai
-from google.genai import types
+import json_repair
 import math
+from demjson3 import decode
 
 class LineControl():
     
@@ -15,8 +15,10 @@ class LineControl():
         self.iters = math.ceil(len(subs)/NUMBER_OF_LINES_PER_REQUEST)
 
 
-    def line_prompt(self):
+    def line_prompt(self, proceed=True):
         number_of_lines = len(self.subs)
+        if proceed == False:
+            self.global_state = self.current_line
 
         if self.verbose:
             print(f"Line Number: {self.global_state + 1}\n")
@@ -34,8 +36,11 @@ class LineControl():
 
         lines_to_translate = []
         for i in range(min(NUMBER_OF_LINES_PER_REQUEST, number_of_lines - self.global_state)):
-            lines_to_translate.append(fugashi_split(self.subs, self.global_state + i))
+            lines_to_translate.append("Full line for context:")
             lines_to_translate.append(get_text(self.global_state + i))
+            lines_to_translate.append("Tokens to help your own chunking:")
+            lines_to_translate.append(fugashi_split(self.subs, self.global_state + i))
+            lines_to_translate.append("-------------Line-------------")
         
         parts = []
         
@@ -69,24 +74,27 @@ class LineControl():
             parts.append("### End of subtitle")
         
         self.current_line = self.global_state
-        self.global_state = self.global_state + NUMBER_OF_LINES_PER_REQUEST - 1
+        self.global_state = self.global_state + NUMBER_OF_LINES_PER_REQUEST
 
         return "\n".join(parts)
     
 
     def translate_subtitle(self, translated_dict_list):
         list_of_subtitle_events = []
-        translated_dict_list = literal_eval(translated_dict_list)
-        for line in translated_dict_list:
+        translated_dict_list = json_repair.repair_json(translated_dict_list, ensure_ascii=False, return_objects=True)
+        # # translated_dict_list = literal_eval(translated_dict_list)
+        # print("AHHHHHHHHHHHHHHHHHHHHHHHHHH" + translated_dict_list)
+        # translated_dict_list = json.loads(translated_dict_list)
+        for i in range(len(translated_dict_list)):
             subtitle_event = []
             jap_tokens = []
             eng_tokens = []
-            for key, value in line.items():
+            for key, value in translated_dict_list[i].items():
                 jap_tokens.append(key)
                 eng_tokens.append(value)
             subtitle_event.append(jap_tokens)
             subtitle_event.append(eng_tokens)
-            subtitle_event.append(self.subs[self.current_line])
+            subtitle_event.append(self.subs[self.current_line + i])
             list_of_subtitle_events.append(subtitle_event)
         return list_of_subtitle_events
 
@@ -95,16 +103,3 @@ class LineControl():
 
 
 
-schema_translate_subtitle = types.FunctionDeclaration(
-    name="translate_subtitle",
-    description="Constructs subtitle from given list of translations.",
-    parameters=types.Schema(
-        type=types.Type.OBJECT,
-        properties={
-            "translated_dict_list": types.Schema(
-                type=types.Type.STRING,
-                description="Translations from Japanese to English word for word as a list of python dictionaries. Each item in the list is one subtitle line as its dictionary.",
-            ),
-        },
-    ),
-)
