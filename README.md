@@ -41,5 +41,6 @@ The following defaults can be changed in the config file:
 2. STARTING_LINE = 1
 3. AI_FAIL_LIMIT = 5 (Number of retries before giving up on the gemini api)
 4. SYSTEM_PROMPT
+5. SHIFT_TIME = 5 (seconds integer) (Shift subtitle forwards or backwards by seconds)
 
 PS: I have only tried srt files so far. I have not looked into any other formats. The output is in ass format.

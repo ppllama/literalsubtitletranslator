@@ -1,5 +1,6 @@
 import pysubs2, sys
 from utils import get_colour
+from config import SHIFT_TIME
 
 def import_file(file_path, verbose=False):
 
@@ -37,6 +38,6 @@ def buildSSA(event_list, file_path):
                                      end=event_list[i][2].end,
                                      text=text,))
         
-    subs.shift(s=-5)
+    subs.shift(s=SHIFT_TIME)
     
     subs.save(file_path,format_="ass")
