@@ -52,9 +52,6 @@ def generate_content(client, messages, verbose):
             tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=types.FunctionCallingConfigMode.ANY))
     ))
 
-    # if response.candidates:
-    #     for candidate in response.candidates:
-    #         messages.append(candidate.content)
         
 
     if verbose:
@@ -62,21 +59,10 @@ def generate_content(client, messages, verbose):
         print("Response tokens:", response.usage_metadata.candidates_token_count)
 
 
-    # function_responses = []
     function_calls = response.function_calls
     if function_calls:
         for call in function_calls:
             return call.args
-            # if not result.parts[0].function_response.response:
-            #     raise Exception("empty function call result")
-            # if verbose:
-            #     print(f"-> {result.parts[0].function_response.response}")
-            # function_responses.append(result.parts[0])
-            
-        # if not function_responses:
-        #     raise Exception("no function responses generated, exiting.")
-        
-        # messages.append(types.Content(role="tool", parts=function_responses))
 
     else:
         print(f"Error: Text response generated: {response.text}")

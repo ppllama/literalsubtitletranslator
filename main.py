@@ -1,6 +1,6 @@
 import sys, os
 from ai_generator import ai_initiate, generate_content
-from config import STARTING_LINE
+from config import STARTING_LINE, AI_FAIL_LIMIT
 from fugashi import Tagger
 from importexport import import_file, buildSSA
 from line_control import LineControl
@@ -23,45 +23,51 @@ def main():
         
 
     subs = import_file(file_path, verbose)
-    start = STARTING_LINE
+    start = STARTING_LINE - 1
     for arg in sys.argv[1:]:
         if arg.startswith("start="):
-            start = int(arg.split("=", 1)[1])
+            start = int(arg.split("=", 1)[1]) - 1
 
     control = LineControl(subs, verbose, global_state=start)
     
 
     i = 0
+    j = 0
     complete_list_of_subtitle_events = []
-    # proceed = True
+    proceed = True
     while True:
         i += 1
+        if j > AI_FAIL_LIMIT:
+            print("AI keeps failing. Mission Abort")
+            sys.exit(1)
+        elif proceed == False:
+            i -= 1
         if i > control.iters:
             print(f"Maximum iterations ({control.iters}) reached.")
             break
         
         try:
-            user_prompt = control.line_prompt()
+            user_prompt = control.line_prompt(proceed)
             client, messages = ai_initiate(user_prompt, verbose)
             response_translations = generate_content(client, messages, verbose)
-            # if response_translations == None:
-            #     continue
-            print("generate content success!")
+            if response_translations == None:
+                raise Exception("Generate Content Failed. Retrying...")
+            print(f"generate content success! {i}")
             if verbose:
                 print(f"Calling function 'translate_subtitle' with args '{response_translations}'")
             current_subtitle_events = control.translate_subtitle(**response_translations)
-            print("Subtitle_events_parsed")
+            print(f"Subtitle events parsed {i}")
             if verbose:
-                print("Subtitle_events_parsed!", current_subtitle_events)
+                print(f"Subtitle events parsed! {i}", current_subtitle_events)
             complete_list_of_subtitle_events.extend(current_subtitle_events)
             if verbose:
                 print("List of subtitle events so far:", complete_list_of_subtitle_events)
-            # proceed = True
+            proceed = True
 
         except Exception as e:
-            print(f"Error in generate_content: {e}")
-            # proceed = False
-            # i -= 1
+            proceed = False
+            j += 1
+            print(f"Error: {e!r} (type: {type(e)}). Retrying...")
         
     if verbose:
         print("The complete list of subtitle events:", complete_list_of_subtitle_events)

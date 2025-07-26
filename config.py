@@ -1,5 +1,6 @@
 NUMBER_OF_LINES_PER_REQUEST = 50
-STARTING_LINE = 0
+STARTING_LINE = 1
+AI_FAIL_LIMIT = 5
 SYSTEM_PROMPT = """
 You are a helpful AI designed to translate japanese subtitles to english word for word based on context.
 

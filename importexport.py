@@ -11,7 +11,9 @@ def import_file(file_path, verbose=False):
         subs = pysubs2.load("subtitles.srt")
         if verbose:
             print(f"importing file:{file_path}")
+        print("File imported successfully!, File_path:", file_path)
         return subs
+
     except Exception as e:
         print(e)
         sys.exit(1)

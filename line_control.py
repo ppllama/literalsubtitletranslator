@@ -80,23 +80,25 @@ class LineControl():
     
 
     def translate_subtitle(self, translated_dict_list):
-        list_of_subtitle_events = []
-        translated_dict_list = json_repair.repair_json(translated_dict_list, ensure_ascii=False, return_objects=True)
-        # # translated_dict_list = literal_eval(translated_dict_list)
-        # print("AHHHHHHHHHHHHHHHHHHHHHHHHHH" + translated_dict_list)
-        # translated_dict_list = json.loads(translated_dict_list)
-        for i in range(len(translated_dict_list)):
-            subtitle_event = []
-            jap_tokens = []
-            eng_tokens = []
-            for key, value in translated_dict_list[i].items():
-                jap_tokens.append(key)
-                eng_tokens.append(value)
-            subtitle_event.append(jap_tokens)
-            subtitle_event.append(eng_tokens)
-            subtitle_event.append(self.subs[self.current_line + i])
-            list_of_subtitle_events.append(subtitle_event)
-        return list_of_subtitle_events
+        try:
+            list_of_subtitle_events = []
+            translated_dict_list = json_repair.repair_json(translated_dict_list, ensure_ascii=False, return_objects=True)
+            for i in range(len(translated_dict_list)):
+                subtitle_event = []
+                jap_tokens = []
+                eng_tokens = []
+                for key, value in translated_dict_list[i].items():
+                    jap_tokens.append(key)
+                    eng_tokens.append(value)
+                subtitle_event.append(jap_tokens)
+                subtitle_event.append(eng_tokens)
+                subtitle_event.append(self.subs[self.current_line + i])
+                list_of_subtitle_events.append(subtitle_event)
+            return list_of_subtitle_events
+
+        except Exception as e:
+            print(f"Error in translate_subtitle: {e}")
+            raise
 
         
 
